@@ -37,10 +37,15 @@ def configure_logging(config: Settings) -> None:
         handlers=[handler],
     )
 
-    # Suppress overly verbose libraries
-    logging.getLogger("uvicorn").propagate = False
-    logging.getLogger("httpx").propagate = False
-    logging.getLogger("sqlalchemy").propagate = False
+    # Configure uvicorn loggers to use our handler
+    for logger_name in ["uvicorn", "uvicorn.error", "uvicorn.access"]:
+        uvicorn_logger = logging.getLogger(logger_name)
+        uvicorn_logger.handlers = [handler]
+        uvicorn_logger.setLevel(log_level)
+
+    # Suppress overly verbose libraries (but not uvicorn)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 
 def get_logger(name: str) -> logging.Logger:
