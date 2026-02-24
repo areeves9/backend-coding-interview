@@ -7,7 +7,7 @@ This module defines data models for API input/output validation.
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl, constr
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, constr
 
 
 # ========== Photo Schemas ==========
@@ -52,13 +52,12 @@ class PhotoUpdate(BaseModel):
 class PhotoResponse(PhotoBase):
     """Schema for photo responses including metadata."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int = Field(..., description="Database ID")
     user_id: str = Field(..., description="Owner user ID")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
-
-    class Config:
-        from_attributes = True  # For Pydantic v2 compatibility
 
 
 # ========== User Schemas ==========
@@ -77,11 +76,10 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     """Schema for user responses."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str = Field(..., description="User ID")
     created_at: datetime = Field(..., description="Creation timestamp")
-
-    class Config:
-        from_attributes = True
 
 
 # ========== Pagination Schema ==========

@@ -19,6 +19,7 @@ engine = create_async_engine(
     echo=settings.is_development,  # Log SQL queries in development
     pool_size=10,
     max_overflow=20,
+    connect_args={"statement_cache_size": 0},  # Required for Supabase PgBouncer
 )
 
 # Async session factory
@@ -30,10 +31,12 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def init_db() -> None:
-    """Initialize database connection and run any startup tasks."""
-    # In a real app, this might include running migrations, creating tables, etc.
-    # For this assessment, we'll keep it simple
-    pass
+    """Initialize database connection and create tables if they don't exist."""
+    # Import models to register them with Base.metadata
+    from clever import models  # noqa: F401
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 async def get_db() -> AsyncSession:

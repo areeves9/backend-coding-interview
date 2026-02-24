@@ -10,6 +10,7 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 dependencies = [
     "asyncpg>=0.31.0",
+    "cryptography>=46.0.5",
     "fastapi>=0.132.0",
     "greenlet>=3.3.2",
     "httpx>=0.28.1",
@@ -37,6 +38,7 @@ packages = ["src/clever"]
 
 [tool.uv]
 dev-dependencies = [
+    "aiosqlite>=0.22.1",
     "black>=26.1.0",
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",

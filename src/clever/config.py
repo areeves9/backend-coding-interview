@@ -22,13 +22,10 @@ class Settings(BaseSettings):
 
     # Supabase Configuration
     SUPABASE_URL: str = "https://your-project-ref.supabase.co"
-    SUPABASE_JWKS_URL: str = ""
 
     @property
     def supabase_jwks_url(self) -> str:
         """Generate Supabase JWKS URL from SUPABASE_URL."""
-        if self.SUPABASE_JWKS_URL:
-            return self.SUPABASE_JWKS_URL
         return f"{self.SUPABASE_URL}/auth/v1/.well-known/jwks.json"
 
     # Application Configuration

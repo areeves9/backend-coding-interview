@@ -8,7 +8,8 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
-from sqlalchemy import func, select as sql_select
+from sqlalchemy import func
+from sqlalchemy import select as sql_select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from clever.auth.deps import get_current_user
@@ -70,7 +71,7 @@ async def list_photos(
         total=total,
         page=page,
         limit=limit,
-        pages=pages
+        pages=pages,
     )
 
 
@@ -123,8 +124,8 @@ async def create_photo(
             detail="Photo with this Pexels ID already exists",
         )
 
-    # Create new photo
-    new_photo = Photo(**photo_data.model_dump(), user_id=current_user.id)
+    # Create new photo (use mode="json" to convert HttpUrl to strings)
+    new_photo = Photo(**photo_data.model_dump(mode="json"), user_id=current_user.id)
 
     db.add(new_photo)
     await db.commit()
@@ -163,8 +164,8 @@ async def update_photo(
             detail="You can only update your own photos",
         )
 
-    # Update photo
-    for key, value in photo_data.model_dump().items():
+    # Update photo (use mode="json" to convert HttpUrl to strings)
+    for key, value in photo_data.model_dump(mode="json").items():
         setattr(photo, key, value)
 
     await db.commit()
@@ -203,8 +204,8 @@ async def partial_update_photo(
             detail="You can only update your own photos",
         )
 
-    # Update only provided fields
-    for key, value in photo_data.model_dump(exclude_unset=True).items():
+    # Update only provided fields (use mode="json" to convert HttpUrl to strings)
+    for key, value in photo_data.model_dump(exclude_unset=True, mode="json").items():
         setattr(photo, key, value)
 
     await db.commit()

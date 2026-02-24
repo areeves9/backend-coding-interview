@@ -1,38 +1,44 @@
 """
 Supabase Auth dependencies and utilities.
 
-This module handles JWT validation against Supabase's JWKS endpoint
+This module handles JWT validation using Supabase's JWKS endpoint
 and provides the get_current_user dependency for FastAPI.
 """
 
-from datetime import datetime, timedelta
-from functools import lru_cache
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import httpx
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jose import JWTError, jwk, jwt
+from jose.utils import base64url_decode
 from sqlalchemy.ext.asyncio import AsyncSession as SQLAlchemyAsyncSession
 from sqlalchemy.future import select
 
 from clever.config import settings
-from clever.database import AsyncSession, AsyncSessionLocal, get_db
+from clever.database import AsyncSession, get_db
 from clever.models import User
 
 # OAuth2 scheme for Bearer token extraction
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+# Cache for JWKS
+_jwks_cache: Dict[str, Any] | None = None
 
-@lru_cache(maxsize=1)
+
 async def get_jwks() -> Dict[str, Any]:
     """Fetch and cache Supabase JWKS (JSON Web Key Set)."""
+    global _jwks_cache
+    if _jwks_cache is not None:
+        return _jwks_cache
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(settings.supabase_jwks_url)
             response.raise_for_status()
-            return response.json()
-    except (httpx.HTTPError, ValueError) as e:
+            _jwks_cache = response.json()
+            return _jwks_cache
+    except httpx.HTTPError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch JWKS: {str(e)}",
@@ -40,22 +46,36 @@ async def get_jwks() -> Dict[str, Any]:
 
 
 async def validate_jwt(token: str) -> Dict[str, Any]:
-    """Validate JWT token against Supabase JWKS."""
+    """Validate JWT token using Supabase JWKS."""
     try:
         # Get JWKS
-        jwks = await get_jwks()
+        jwks_data = await get_jwks()
 
-        # Validate token
+        # Get the key ID from the token header
+        unverified_header = jwt.get_unverified_header(token)
+        kid = unverified_header.get("kid")
+
+        # Find the matching key
+        rsa_key = None
+        for key in jwks_data.get("keys", []):
+            if key.get("kid") == kid:
+                rsa_key = key
+                break
+
+        if not rsa_key:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Unable to find matching key",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        # Decode and validate token (Supabase uses ES256)
         payload = jwt.decode(
             token,
-            jwks,
-            algorithms=["RS256"],
+            rsa_key,
+            algorithms=["ES256"],
             audience="authenticated",
-            options={
-                "verify_aud": False
-            },  # Supabase doesn't always set standard aud claim
         )
-
         return payload
     except JWTError as e:
         raise HTTPException(
