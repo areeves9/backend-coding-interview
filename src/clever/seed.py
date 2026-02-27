@@ -141,7 +141,7 @@ def main():
     parser.add_argument(
         "--csv",
         type=Path,
-        default=Path(__file__).parent.parent.parent.parent / "photos.csv",
+        default=Path(__file__).parent.parent.parent / "photos.csv",
         help="Path to CSV file",
     )
     parser.add_argument(
