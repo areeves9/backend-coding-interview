@@ -39,7 +39,12 @@ A production-ready RESTful API for photo management using FastAPI, Supabase, and
    python entrypoint.py
    ```
 
-6. **Access the API:**
+6. **Seed the database (optional):**
+   ```bash
+   python -m clever.seed
+   ```
+
+7. **Access the API:**
    - API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
    - Health Check: [http://localhost:8000/api/v1/health/](http://localhost:8000/api/v1/health/)
 
@@ -79,7 +84,8 @@ clever-photos/
 │       ├── logging.py     # Logging setup
 │       ├── database.py    # Database connection
 │       ├── models.py      # SQLAlchemy models
-│       ├── schemas.py     # Pydantic schemas (TODO)
+│       ├── schemas.py     # Pydantic schemas
+│       ├── seed.py        # CSV seeding script
 │       ├── auth/
 │       │   ├── __init__.py
 │       │   └── deps.py    # Auth dependencies
@@ -87,12 +93,11 @@ clever-photos/
 │           ├── __init__.py
 │           ├── router.py  # Main router
 │           ├── health.py  # Health check
-│           └── photos.py  # Photo endpoints (TODO)
+│           └── photos.py  # Photo endpoints
 └── tests/
     ├── __init__.py
-    ├── conftest.py        # Test fixtures (TODO)
-    ├── test_health.py     # Health tests (TODO)
-    └── test_auth.py       # Auth tests (TODO)
+    ├── conftest.py        # Test fixtures
+    └── test_photos.py     # Photo endpoint tests
 ```
 
 ## 🔐 Authentication
@@ -267,29 +272,23 @@ This project uses SQLAlchemy's `create_all()` for simplicity. For production, co
 - [x] Supabase integration (Auth + Database)
 - [x] Core configuration and logging
 - [x] Database models (User, Photo)
-- [x] Authentication system
+- [x] Authentication system (JWT/JWKS)
 - [x] Health check endpoint
-- [x] API router structure
-
-### In Progress 🚧
-
-- [ ] Photo CRUD endpoints
-- [ ] Pydantic schemas
-- [ ] CSV seeding script
-- [ ] Rate limiting
-- [ ] Comprehensive tests
-- [ ] API documentation
+- [x] Photo CRUD endpoints with pagination
+- [x] Ownership-based authorization
+- [x] Pydantic schemas
+- [x] CSV seeding script
+- [x] Comprehensive tests (27 tests)
+- [x] API documentation (OpenAPI/Swagger)
 
 ### Future Enhancements 🔮
 
+- [ ] Rate limiting (slowapi installed)
 - [ ] RBAC (Role-Based Access Control)
 - [ ] Caching (Redis)
 - [ ] File uploads
-- [ ] Search functionality
-- [ ] Pagination
-- [ ] API versioning
+- [ ] Full-text search
 - [ ] OpenTelemetry tracing
-- [ ] Health checks with database verification
 
 ## 🤝 Contributing
 
